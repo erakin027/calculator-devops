@@ -1,0 +1,12 @@
+target/
+.git/
+.gitignore
+.idea/
+.vscode/
+*.iml
+*.log
+Jenkinsfile
+docker-compose.yml
+nginx/
+README.md
+.env
