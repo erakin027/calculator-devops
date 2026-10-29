@@ -26,4 +26,14 @@ public class CalculatorController {
     public CalculationResponse subtract(@RequestParam double a, @RequestParam double b) {
         return new CalculationResponse("subtract", a, b, service.subtract(a, b));
     }
+
+    @GetMapping("/multiply")
+    public CalculationResponse multiply(@RequestParam double a, @RequestParam double b) {
+        return new CalculationResponse("multiply", a, b, service.multiply(a, b));
+    }
+
+    @GetMapping("/divide")
+    public CalculationResponse divide(@RequestParam double a, @RequestParam double b) {
+        return new CalculationResponse("divide", a, b, service.divide(a, b));
+    }
 }
