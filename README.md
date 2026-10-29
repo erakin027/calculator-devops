@@ -71,3 +71,29 @@ curl "http://localhost:8080/actuator/health"
 ```
 
 Replace port `8080` with `8081` in these URLs if you started the application on port `8081`.
+
+## Docker
+
+```bash
+docker build -t calculator-devops .
+docker run -d -p 8082:8080 --name calc calculator-devops
+curl http://localhost:8082/actuator/health
+```
+
+The example publishes container port `8080` on host port `8082`, avoiding a conflict with Jenkins on host port `8080`.
+
+Stop and remove the container when finished:
+
+```bash
+docker stop calc
+docker rm calc
+```
+
+## Docker Compose (Nginx + 2 replicas)
+
+```bash
+docker compose up -d
+docker compose ps
+curl "http://localhost:8081/api/v1/multiply?a=4&b=3"
+docker compose down
+```
