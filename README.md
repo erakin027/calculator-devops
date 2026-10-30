@@ -1,6 +1,6 @@
 # calculator-devops
 
-Calculator REST API built using Java 17, Spring Boot 3, and Maven.
+A Calculator REST API built using Java 17, Spring Boot 3, and Maven, with Docker-based deployment and a Jenkins CI/CD pipeline.
 
 **CSE 816 Software Production Engineering — Mini-Project**
 
@@ -97,3 +97,9 @@ docker compose ps
 curl "http://localhost:8081/api/v1/multiply?a=4&b=3"
 docker compose down
 ```
+
+## CI/CD pipeline
+
+The `Jenkinsfile` defines: Checkout -> Build -> Test -> Docker Build -> Push -> Deploy.
+It is triggered by a GitHub webhook, pushes `<user>/calculator-devops:<build-number>` to Docker Hub,
+deploys with Docker Compose, and emails the build result.
