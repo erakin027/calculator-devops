@@ -13,7 +13,15 @@ pipeline {
         IMAGE_TAG    = "${env.BUILD_NUMBER}"
         // Jenkins credentials ID (Username with password) holding Docker Hub login
         DOCKER_CREDS = 'dockerhub-creds'
+        // Recipient of build status emails
+        NOTIFY_EMAIL = 'abhijitdibbidi027@gmail.com'
         HOST_PORT    = '8081'
+    }
+
+    options {
+        timestamps()
+        disableConcurrentBuilds()
+        timeout(time: 20, unit: 'MINUTES')
     }
 
     stages {
@@ -83,6 +91,19 @@ pipeline {
                     exit 1
                 '''
             }
+        }
+    }
+
+    post {
+        success {
+            mail to: "${NOTIFY_EMAIL}",
+                 subject: "SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                 body: "Build succeeded and deployed.\nImage: ${IMAGE_REPO}:${IMAGE_TAG}\nDetails: ${env.BUILD_URL}"
+        }
+        failure {
+            mail to: "${NOTIFY_EMAIL}",
+                 subject: "FAILURE: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                 body: "Build failed.\nSee console output: ${env.BUILD_URL}console"
         }
     }
 }
