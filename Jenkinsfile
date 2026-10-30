@@ -7,6 +7,14 @@ pipeline {
         jdk 'JDK17'
     }
 
+    environment {
+        // Docker Hub repository (username/repo)
+        IMAGE_REPO   = 'erakin027/calculator-devops'
+        IMAGE_TAG    = "${env.BUILD_NUMBER}"
+        // Jenkins credentials ID (Username with password) holding Docker Hub login
+        DOCKER_CREDS = 'dockerhub-creds'
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -27,6 +35,29 @@ pipeline {
             post {
                 always {
                     junit 'target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                sh '''
+                    docker build -t ${IMAGE_REPO}:${IMAGE_TAG} -t ${IMAGE_REPO}:latest .
+                '''
+            }
+        }
+
+        stage('Push') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDS}",
+                                                  usernameVariable: 'DH_USER',
+                                                  passwordVariable: 'DH_PASS')]) {
+                    sh '''
+                        echo "$DH_PASS" | docker login -u "$DH_USER" --password-stdin
+                        docker push ${IMAGE_REPO}:${IMAGE_TAG}
+                        docker push ${IMAGE_REPO}:latest
+                        docker logout
+                    '''
                 }
             }
         }
