@@ -1,8 +1,11 @@
 # calculator-devops
 
-A Calculator REST API built using Java 17, Spring Boot 3, and Maven, with Docker-based deployment and a Jenkins CI/CD pipeline.
+**CSE 816 — Software Production Engineering Mini-Project**
 
-**CSE 816 Software Production Engineering — Mini-Project**
+**Name:** Abhijit Dibbidi  
+**Roll Number:** IMT2023054
+
+A Calculator REST API built using Java 17, Spring Boot 3, and Maven, with Docker-based deployment and a Jenkins CI/CD pipeline.
 
 ## Endpoints
 
@@ -17,7 +20,7 @@ A Calculator REST API built using Java 17, Spring Boot 3, and Maven, with Docker
 
 Division by zero returns HTTP `400 Bad Request`.
 
-**Success response:**
+### Example success response
 
 ```json
 {
@@ -28,7 +31,9 @@ Division by zero returns HTTP `400 Bad Request`.
 }
 ```
 
-**Error response (HTTP 400):**
+### Example error response
+
+HTTP `400 Bad Request`
 
 ```json
 {
@@ -39,7 +44,9 @@ Division by zero returns HTTP `400 Bad Request`.
 }
 ```
 
-## Build and test
+## Build and Test
+
+Build the application and run the tests:
 
 ```bash
 mvn clean package
@@ -48,19 +55,21 @@ mvn test
 
 The packaged application is generated at `target/calculator.jar`. Test reports are available in `target/surefire-reports/`.
 
-## Run locally
+## Run Locally
+
+Start the application:
 
 ```bash
 java -jar target/calculator.jar
 ```
 
-The application listens on port `8080` by default. If that port is occupied, you can use another port:
+The application listens on port `8080` by default. To use a different port:
 
 ```bash
 java -jar target/calculator.jar --server.port=8081
 ```
 
-## Example API requests
+### Example API requests
 
 ```bash
 curl "http://localhost:8080/api/v1/add?a=2&b=3"
@@ -68,19 +77,32 @@ curl "http://localhost:8080/api/v1/multiply?a=4&b=3"
 curl "http://localhost:8080/api/v1/divide?a=6&b=3"
 curl -i "http://localhost:8080/api/v1/divide?a=6&b=0"
 curl "http://localhost:8080/actuator/health"
+curl "http://localhost:8080/actuator/info"
 ```
 
-Replace port `8080` with `8081` in these URLs if you started the application on port `8081`.
+Replace port `8080` with the port you selected when starting the application.
 
 ## Docker
 
+Build the Docker image:
+
 ```bash
 docker build -t calculator-devops .
-docker run -d -p 8082:8080 --name calc calculator-devops
-curl http://localhost:8082/actuator/health
 ```
 
-The example publishes container port `8080` on host port `8082`, avoiding a conflict with Jenkins on host port `8080`.
+Run the container:
+
+```bash
+docker run -d -p 8082:8080 --name calc calculator-devops
+```
+
+Test the health endpoint:
+
+```bash
+curl "http://localhost:8082/actuator/health"
+```
+
+The container's port `8080` is published on host port `8082`, avoiding a conflict with Jenkins on host port `8080`.
 
 Stop and remove the container when finished:
 
@@ -89,17 +111,80 @@ docker stop calc
 docker rm calc
 ```
 
-## Docker Compose (Nginx + 2 replicas)
+## Docker Compose — Nginx and Calculator Replicas
+
+Docker Compose deploys Nginx as a reverse proxy in front of two calculator API replicas.
+
+Start the services:
 
 ```bash
 docker compose up -d
+```
+
+Check their status:
+
+```bash
 docker compose ps
+```
+
+Send a request through Nginx:
+
+```bash
 curl "http://localhost:8081/api/v1/multiply?a=4&b=3"
+```
+
+Check application health through the configured endpoint:
+
+```bash
+curl "http://localhost:8081/actuator/health"
+```
+
+Stop the services:
+
+```bash
 docker compose down
 ```
 
-## CI/CD pipeline
+Nginx exposes the application on host port `8081`, keeping it separate from Jenkins on port `8080`.
 
-The `Jenkinsfile` defines: Checkout -> Build -> Test -> Docker Build -> Push -> Deploy.
-It is triggered by a GitHub webhook, pushes `<user>/calculator-devops:<build-number>` to Docker Hub,
-deploys with Docker Compose, and emails the build result.
+## CI/CD Pipeline
+
+The `Jenkinsfile` defines the following pipeline:
+
+**Checkout → Build → Test → Docker Build → Push → Deploy**
+
+The pipeline:
+
+1. Checks out the source code from GitHub.
+2. Builds the application using Maven.
+3. Runs automated tests and publishes test reports.
+4. Builds a Docker image tagged with the Jenkins build number and `latest`.
+5. Pushes the images to Docker Hub.
+6. Deploys the application using Docker Compose.
+7. Checks the application's health endpoint.
+8. Sends an email notification on build success or failure.
+
+A GitHub webhook triggers the Jenkins pipeline when configured and enabled.
+
+### Docker Hub Image
+
+The pipeline publishes images using the following tag format:
+
+```text
+<dockerhub-username>/calculator-devops:<build-number>
+<dockerhub-username>/calculator-devops:latest
+```
+
+Replace `<dockerhub-username>` with the Docker Hub account used by the pipeline.
+
+## Technologies Used
+
+- Java 17
+- Spring Boot 3
+- Maven
+- JUnit
+- Docker and Docker Compose
+- Nginx
+- Jenkins
+- Git and GitHub
+- Docker Hub
