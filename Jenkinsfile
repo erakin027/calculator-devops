@@ -13,6 +13,7 @@ pipeline {
         IMAGE_TAG    = "${env.BUILD_NUMBER}"
         // Jenkins credentials ID (Username with password) holding Docker Hub login
         DOCKER_CREDS = 'dockerhub-creds'
+        HOST_PORT    = '8081'
     }
 
     stages {
@@ -59,6 +60,28 @@ pipeline {
                         docker logout
                     '''
                 }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh '''
+                    docker compose up -d --remove-orphans
+
+                    echo "Waiting for the stack to become healthy..."
+                    for i in $(seq 1 30); do
+                        if curl -fsS http://localhost:${HOST_PORT}/actuator/health | grep -q '"status":"UP"'; then
+                            echo "Health check passed"
+                            docker compose ps
+                            exit 0
+                        fi
+                        sleep 5
+                    done
+                    echo "Health check FAILED"
+                    docker compose ps
+                    docker compose logs --tail=50
+                    exit 1
+                '''
             }
         }
     }
